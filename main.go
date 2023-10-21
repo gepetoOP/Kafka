@@ -32,8 +32,6 @@ func main() {
 		log.Fatal("failed to dial leader:", err)
 	}
 
-	conn := kafkaProvider.GetConnection()
-
 	kafkaProvider.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
 	err = kafkaProvider.Write("OPAAA!")
@@ -42,7 +40,7 @@ func main() {
 		log.Fatal("failed to write messages:", err)
 	}
 
-	if err := conn.Close(); err != nil {
+	if err := kafkaProvider.CloseConnection(); err != nil {
 		log.Fatal("failed to close writer:", err)
 	}
 }
@@ -60,8 +58,8 @@ func (kafkaProvider *KafkaProvider) Connect() error {
 }
 
 func (kafkaProvider *KafkaProvider) GetConnection() *kafka.Conn {
-	if v, ok := kafkaProvider.connection.(*kafka.Conn); ok {
-		return v
+	if connection, ok := kafkaProvider.connection.(*kafka.Conn); ok {
+		return connection
 	}
 
 	panic("invalid implementation")
@@ -77,4 +75,12 @@ func (kafkaProvider *KafkaProvider) Write(message string) error {
 	)
 
 	return err
+}
+
+func (kafkaProvider *KafkaProvider) CloseConnection() error {
+	if connection, ok := kafkaProvider.connection.(*kafka.Conn); ok {
+		return connection.Close()
+	}
+
+	panic("invalid implementation")
 }
