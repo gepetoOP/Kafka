@@ -1,7 +1,7 @@
 docker-compose up
 
-Cria tópico -> docker-compose exec kafka kafka-topics.sh --create --topic baeldung_linux --partitions 1 --replication-factor 1 --bootstrap-server kafka:9092
+Cria tópico -> docker-compose exec kafka kafka-topics.sh --create --topic meu-topico --partitions 1 --replication-factor 1 --bootstrap-server kafka:9092
 
-Cria consumer -> docker-compose exec kafka kafka-console-consumer.sh --topic baeldung_linux --from-beginning --bootstrap-server kafka:9092
+Cria consumer -> docker-compose exec kafka kafka-console-consumer.sh --topic meu-topico --from-beginning --bootstrap-server kafka:9092
 
-Cria producer -> docker-compose exec kafka kafka-console-producer.sh --topic baeldung_linux --broker-list kafka:9092
+Cria producer -> docker-compose exec kafka kafka-console-producer.sh --topic meu-topico --broker-list kafka:9092

@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -47,9 +48,9 @@ func (kafkaProvider *KafkaProvider) SetWriteDeadline(time time.Time) {
 	kafkaProvider.GetConnection().SetWriteDeadline(time)
 }
 
-func (kafkaProvider *KafkaProvider) Write(message string) {
+func (kafkaProvider *KafkaProvider) Write(message any) {
 	_, err := kafkaProvider.GetConnection().WriteMessages(
-		kafka.Message{Value: []byte(message)},
+		kafka.Message{Value: []byte(fmt.Sprintf("%s", message))},
 	)
 
 	if err != nil {
