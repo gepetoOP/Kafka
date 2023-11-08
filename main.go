@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	provider "kafka/cmd/model"
@@ -24,15 +25,23 @@ func main() {
 
 	kafkaProvider.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
-	msg := KafkaMessage{
-		Now:   time.Now(),
-		Name:  "Lucao",
-		Value: 12,
+	for i := 0; i < 5; i++ {
+		run(*kafkaProvider)
 	}
 
-	kafkaProvider.Write(msg)
-
 	kafkaProvider.CloseConnection()
+}
+
+func run(provider provider.KafkaProvider) {
+	for i := 0; i < 2; i++ {
+		msg := KafkaMessage{
+			Now:   time.Now(),
+			Name:  "Lucao",
+			Value: rand.Intn(1000),
+		}
+
+		provider.Write(msg)
+	}
 }
 
 func (msg KafkaMessage) String() string {
