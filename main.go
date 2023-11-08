@@ -3,7 +3,7 @@ package main
 import (
 	"time"
 
-	provider "kafka/my_provider"
+	provider "kafka/cmd/model"
 )
 
 const (
