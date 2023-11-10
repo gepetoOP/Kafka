@@ -25,9 +25,12 @@ func main() {
 
 	kafkaProvider.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 1; i++ {
 		run(*kafkaProvider)
 	}
+	kafkaProvider.SetReadDeadline(time.Now().Add(20 * time.Second))
+
+	kafkaProvider.Read()
 
 	kafkaProvider.CloseConnection()
 }
