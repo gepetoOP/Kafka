@@ -18,6 +18,12 @@ type KafkaProvider struct {
 
 type Connection interface{}
 
+type KafkaMessage struct {
+	Now   time.Time `json:"now"`
+	Name  string    `json:"name"`
+	Value int       `json:"value"`
+}
+
 func NewProvider(topic string, partition int) *KafkaProvider {
 	kafkaProvider := &KafkaProvider{
 		topic:     topic,
@@ -56,8 +62,12 @@ func (kafkaProvider *KafkaProvider) Write(message any) {
 		log.Fatal("failed to convert object:", err)
 	}
 
-	_, err = kafkaProvider.GetConnection().WriteMessages(
-		kafka.Message{Value: []byte(fmt.Sprintf("%s", jsonStruct))},
+	kafkaProvider.WriteBytes(jsonStruct)
+}
+
+func (kafkaProvider *KafkaProvider) WriteBytes(message []byte) {
+	_, err := kafkaProvider.GetConnection().WriteMessages(
+		kafka.Message{Value: []byte(message)},
 	)
 
 	if err != nil {
@@ -69,21 +79,38 @@ func (kafkaProvider *KafkaProvider) SetReadDeadline(time time.Time) {
 	kafkaProvider.GetConnection().SetReadDeadline(time)
 }
 
-func (kafkaProvider *KafkaProvider) Read() {
-	batch := kafkaProvider.GetConnection().ReadBatch(10e3, 1e6) // fetch 10KB min, 1MB max
+func (kafkaProvider *KafkaProvider) Read() [][]byte {
+	batch := kafkaProvider.GetConnection().ReadBatch(0, 1e6) // fetch 10KB min, 1MB max
 
 	b := make([]byte, 10e3) // 10KB max per message
+
+	var messages [][]byte
+
+	timeout := time.After(5 * time.Second)
+
+readChannel:
 	for {
-		n, err := batch.Read(b)
-		if err != nil {
-			break
+		select {
+		case <-timeout:
+			fmt.Println("Timeout reached. Exiting the loop.")
+			break readChannel
+		default:
+			n, err := batch.Read(b)
+			if err != nil {
+				break readChannel
+			}
+
+			message := make([]byte, n)
+			copy(message, b[:n])
+			messages = append(messages, message)
 		}
-		fmt.Println(string(b[:n]))
 	}
 
 	if err := batch.Close(); err != nil {
 		log.Fatal("failed to close batch:", err)
 	}
+
+	return messages
 }
 
 func (kafkaProvider *KafkaProvider) CloseConnection() {

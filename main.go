@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"math/rand"
 	"time"
 
@@ -13,9 +15,9 @@ const (
 )
 
 type KafkaMessage struct {
-	Now   time.Time
-	Name  string
-	Value int
+	Now   time.Time `json:"now"`
+	Name  string    `json:"name"`
+	Value int       `json:"value"`
 }
 
 func main() {
@@ -25,12 +27,19 @@ func main() {
 
 	kafkaProvider.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 5; i++ {
 		run(*kafkaProvider)
 	}
-	kafkaProvider.SetReadDeadline(time.Now().Add(20 * time.Second))
 
-	kafkaProvider.Read()
+	kafkaProvider.SetReadDeadline(time.Now().Add(10 * time.Second))
+
+	rawMessages := kafkaProvider.Read()
+
+	kafkaMessages := convertBytes(rawMessages)
+
+	for _, message := range kafkaMessages {
+		fmt.Println(message)
+	}
 
 	kafkaProvider.CloseConnection()
 }
@@ -49,4 +58,22 @@ func run(provider provider.KafkaProvider) {
 
 func (msg KafkaMessage) String() string {
 	return fmt.Sprintf("Name: %v, Date: %v, Value: %v", msg.Name, msg.Now, msg.Value)
+}
+
+func convertBytes(messages [][]byte) []KafkaMessage {
+	var convertedBytes []KafkaMessage
+
+	for _, message := range messages {
+		output := KafkaMessage{}
+
+		err := json.Unmarshal(message, &output)
+
+		if err != nil {
+			log.Fatal("Erro ao deserializar mensagem:", err)
+		} else {
+			convertedBytes = append(convertedBytes, output)
+		}
+	}
+
+	return convertedBytes
 }
