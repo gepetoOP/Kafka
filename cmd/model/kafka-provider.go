@@ -77,7 +77,7 @@ func (kafkaProvider *KafkaProvider) SetReadDeadline(time time.Time) {
 	kafkaProvider.GetConnection().SetReadDeadline(time)
 }
 
-func (kafkaProvider *KafkaProvider) Read() [][]byte {
+func (kafkaProvider *KafkaProvider) ReadAll() [][]byte {
 	batch := kafkaProvider.GetConnection().ReadBatch(0, 1e6) // fetch 10KB min, 1MB max
 
 	b := make([]byte, 10e3) // 10KB max per message

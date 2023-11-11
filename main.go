@@ -25,15 +25,15 @@ func main() {
 
 	kafkaProvider.Connect()
 
-	// kafkaProvider.SetWriteDeadline(time.Now().Add(10 * time.Second))
+	kafkaProvider.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
-	// for i := 0; i < 5; i++ {
-	// 	run(*kafkaProvider)
-	// }
+	for i := 0; i < 5; i++ {
+		run(*kafkaProvider)
+	}
 
-	// kafkaProvider.SetReadDeadline(time.Now().Add(10 * time.Second))
+	kafkaProvider.SetReadDeadline(time.Now().Add(10 * time.Second))
 
-	rawMessages := kafkaProvider.Read()
+	rawMessages := kafkaProvider.ReadAll()
 
 	var kafkaMessages []KafkaMessage
 
