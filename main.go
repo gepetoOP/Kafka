@@ -25,17 +25,19 @@ func main() {
 
 	kafkaProvider.Connect()
 
-	kafkaProvider.SetWriteDeadline(time.Now().Add(10 * time.Second))
+	// kafkaProvider.SetWriteDeadline(time.Now().Add(10 * time.Second))
 
-	for i := 0; i < 5; i++ {
-		run(*kafkaProvider)
-	}
+	// for i := 0; i < 5; i++ {
+	// 	run(*kafkaProvider)
+	// }
 
-	kafkaProvider.SetReadDeadline(time.Now().Add(10 * time.Second))
+	// kafkaProvider.SetReadDeadline(time.Now().Add(10 * time.Second))
 
 	rawMessages := kafkaProvider.Read()
 
-	kafkaMessages := convertBytes(rawMessages)
+	var kafkaMessages []KafkaMessage
+
+	kafkaMessages = provider.ConvertBytes(kafkaMessages, rawMessages)
 
 	for _, message := range kafkaMessages {
 		fmt.Println(message)
@@ -60,20 +62,14 @@ func (msg KafkaMessage) String() string {
 	return fmt.Sprintf("Name: %v, Date: %v, Value: %v", msg.Name, msg.Now, msg.Value)
 }
 
-func convertBytes(messages [][]byte) []KafkaMessage {
-	var convertedBytes []KafkaMessage
+func (msg KafkaMessage) Unmarshal(rawMessage []byte) any {
+	var output KafkaMessage
 
-	for _, message := range messages {
-		output := KafkaMessage{}
+	err := json.Unmarshal(rawMessage, &output)
 
-		err := json.Unmarshal(message, &output)
-
-		if err != nil {
-			log.Fatal("Erro ao deserializar mensagem:", err)
-		} else {
-			convertedBytes = append(convertedBytes, output)
-		}
+	if err != nil {
+		log.Fatal("Erro ao deserializar mensagem:", err)
 	}
 
-	return convertedBytes
+	return output
 }

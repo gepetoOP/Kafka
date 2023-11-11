@@ -18,10 +18,8 @@ type KafkaProvider struct {
 
 type Connection interface{}
 
-type KafkaMessage struct {
-	Now   time.Time `json:"now"`
-	Name  string    `json:"name"`
-	Value int       `json:"value"`
+type MessageUnmarshal interface {
+	Unmarshal([]byte) any
 }
 
 func NewProvider(topic string, partition int) *KafkaProvider {
@@ -111,6 +109,22 @@ readChannel:
 	}
 
 	return messages
+}
+
+func ConvertBytes[T MessageUnmarshal](convertedBytes []T, messages [][]byte) []T {
+	for _, message := range messages {
+		var object T
+
+		output := object.Unmarshal(message)
+
+		if convertedOutput, ok := output.(T); ok {
+			convertedBytes = append(convertedBytes, convertedOutput)
+		} else {
+			log.Fatal("Classe não implementa interface necessária")
+		}
+	}
+
+	return convertedBytes
 }
 
 func (kafkaProvider *KafkaProvider) CloseConnection() {
