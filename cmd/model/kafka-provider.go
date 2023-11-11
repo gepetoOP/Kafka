@@ -18,7 +18,7 @@ type KafkaProvider struct {
 
 type Connection interface{}
 
-type MessageUnmarshal interface {
+type MessageContent interface {
 	Unmarshal([]byte) any
 }
 
@@ -111,20 +111,20 @@ readChannel:
 	return messages
 }
 
-func ConvertBytes[T MessageUnmarshal](convertedBytes []T, messages [][]byte) []T {
-	for _, message := range messages {
+func ConvertBytes[T MessageContent](convertedContent []T, rawMessages [][]byte) []T {
+	for _, message := range rawMessages {
 		var object T
 
 		output := object.Unmarshal(message)
 
 		if convertedOutput, ok := output.(T); ok {
-			convertedBytes = append(convertedBytes, convertedOutput)
+			convertedContent = append(convertedContent, convertedOutput)
 		} else {
 			log.Fatal("Classe não implementa interface necessária")
 		}
 	}
 
-	return convertedBytes
+	return convertedContent
 }
 
 func (kafkaProvider *KafkaProvider) CloseConnection() {
